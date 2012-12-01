@@ -1,0 +1,34 @@
+{
+  "name": "wut",
+  "description": "\"Working Up Twitter\": tool to collect and store data from the Twitter Stream API for analysis and statistical evaluation",
+  "version": "0.1.0",
+  "author": "Kai Koch <kai.koch@gmail.com>",
+  "contributors": [],
+  "keywords": [
+    "twitter",
+    "api",
+    "stream",
+    "streaming"
+  ],
+  "dependencies": {
+    "mysql": "2.x",
+    "twit": "1.x >=1.0.9"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kai-koch/wut.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "start": "node twitterLoop.js"
+  },
+  "private": true,
+  "main": "twitterLoop.js",
+  "directories": {
+    "test": "test"
+  }
+}

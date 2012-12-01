@@ -1,0 +1,14 @@
+module.exports = {
+// enter the values for your installation
+    host: '[localhost]',
+    port: [3306],
+    user: '[daUser]',
+    password: '[daPass]',
+    database: '[wut]',
+// leave this alone unless you do NOT have mysql 5.5.3 or greater, not using
+// utf8mb4 stores 4 byte utf8 chars and emoji code-points wrong!
+    charset: 'utf8mb4_unicode_ci',
+// wut needs the following to function correctly
+    multipleStatements: true,
+    typeCast: true
+};
