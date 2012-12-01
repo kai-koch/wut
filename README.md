@@ -2,6 +2,8 @@ wut
 ===
 __wut - "Working Up Twitter":__ tool to collect and store data from the Twitter Stream API for analysis and statistical evaluation
 
+Version 0.1.0
+
 TOC:
 ====
 * [Purpose](README.md#purpose)
@@ -45,7 +47,7 @@ Quick install:
 * Install node.js (http://nodejs.org/)
 * Install MySql (e.g. http://www.apachefriends.org)
 * Download and unpack the source code to a directory of your choice
-* Use npm in that directory to install the modules "node-mysql" and "twit" ("npm install mysql@2.0.0-alpha4" and "npm install twit"). This will put these required modules into the sub folder "node_modules"
+* Use npm in that directory to install the modules "node-mysql" and "twit" ("npm install"). This will put these required modules into the sub folder "node_modules"
 * Create the needed tables with sql/CreateTables.sql and a MySQL-client of your choice
 * Make the needed authentication keys on Twitter. Create twitConfig.js and dbConfig.js in the directory of the application. See: twitConfig.sample and dbConfig.sample as templates
 * Insert your search terms into the tables "wut_follow", "wut_track" and "wut_locations"
