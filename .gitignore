@@ -5,10 +5,45 @@ lib-cov
 *.dat
 *.out
 *.pid
-*.gz
 
 pids
 logs
 results
-
 npm-debug.log
+
+node_modules/
+
+# appplication configs #
+########################
+twitConfig.js
+dbConfig.js
+
+# netbeans IDE #
+################
+nbproject/
+
+# CodeIgniter#
+##############
+application/config/config.php
+*.swp
+*.bak
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# OS generated files #
+######################
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
