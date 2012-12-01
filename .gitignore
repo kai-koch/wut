@@ -22,8 +22,8 @@ dbConfig.js
 ################
 nbproject/
 
-# CodeIgniter#
-##############
+# CodeIgniter #
+###############
 application/config/config.php
 *.swp
 *.bak
