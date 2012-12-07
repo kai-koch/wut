@@ -1,3 +1,12 @@
+/*jslint node: true, indent: 4, maxlen: 80 */
+/*properties
+    NAMES, character_set_client, character_set_connection, character_set_obj,
+    character_set_results, character_set_sql_tpl, code, connect,
+    createConnection, database, dbconfig, dbh, destroy, end, escape,
+    execSetConnectionCharsets, exports, fatal, format, getLastQuery, host, log,
+    on, onDBerror, prototype, query, reconnectCallback, setCharacterSet, sql,
+    stack, user
+*/
 var mysql = require('mysql');
 var format = require('util').format;
 
@@ -42,7 +51,7 @@ DbWrapper.prototype.character_set_sql_tpl = "SET character_set_client='%s';" +
  * Opens an new connection to the host and database given in the dbconfig.
  * @throws {error} JavaScript error
  */
-DbWrapper.prototype.connect = function () {
+DbWrapper.prototype.connect = function dbhConnect() {
     'use strict';
     var that = this;
     this.dbh = mysql.createConnection(this.dbconfig);
@@ -53,7 +62,13 @@ DbWrapper.prototype.connect = function () {
         that.onDBerror(err);
     });
     this.execSetConnectionCharsets();
-    this.escape = this.dbh.escape;
+// for mysql@2.0.0-alpha3 and below
+// the old way: escape was bound to the connection object
+//    this.escape = this.dbh.escape;
+
+// for mysql@2.0.0-alpha4 and above
+// the new way: the escape function is bound directly to the mysql-object
+    this.escape = mysql.escape;
     console.log(format('Connected to database: %s on host: %s as user: %s',
         this.dbconfig.database,
         this.dbconfig.host,
@@ -65,31 +80,32 @@ DbWrapper.prototype.connect = function () {
  * Additionally destroy() guarantees that no more events or callbacks will be
  * triggered for the connection.
  */
-DbWrapper.prototype.destroy = function () {
+DbWrapper.prototype.destroy = function dbhDestroy() {
     'use strict';
     this.dbh.destroy();
 };
 
 /**
- * This will make sure all previously enqueued queries are still before sending
- * a COM_QUIT packet to the MySQL server. If a fatal error occurs before the
- * COM_QUIT packet can be sent, an err argument will be provided to the
- * callback, but the connection will be terminated regardless of that.
+ * This will make sure all previously enqueued queries are still executed before
+ * sending a COM_QUIT packet to the MySQL server.<br>
+ * If a fatal error occurs before the COM_QUIT packet can be sent, an err
+ * argument will be provided to the callback, but the connection will be
+ * terminated regardless of that.
  * @param {function} [callback] optional callback, if the callback is omitted
  * the default .onDBerror handler of this class will be used
  */
-DbWrapper.prototype.end = function (callback) {
+DbWrapper.prototype.end = function dbhEnd(callback) {
     'use strict';
     callback = callback || this.onDBerror;
     this.dbh.end(callback);
 };
 
 /**
- * Parses the character_set_sql_tpl using the character_set_obj and executes
- * the SQL-Command
+ * Parses the character_set_sql_tpl using the parameters character_set_obj and
+ * executes the SQL-Command
  * @public
  */
-DbWrapper.prototype.execSetConnectionCharsets = function () {
+DbWrapper.prototype.execSetConnectionCharsets = function setConCharsets() {
     'use strict';
     var sql = format(this.character_set_sql_tpl,
         this.character_set_obj.character_set_client,
@@ -104,7 +120,8 @@ DbWrapper.prototype.execSetConnectionCharsets = function () {
  * @return {string}
  * @public
  */
-DbWrapper.prototype.getLastQuery = function () {
+DbWrapper.prototype.getLastQuery = function dbhGetLastQuery() {
+    'use strict';
     var sql;
     try {
         sql = this.dbh.query.sql;
@@ -119,7 +136,7 @@ DbWrapper.prototype.getLastQuery = function () {
  * @param {error} [err] JavaScript error
  * @throws {error} JavaScript error
  */
-DbWrapper.prototype.onDBerror = function (err) {
+DbWrapper.prototype.onDBerror = function throwDbError(err) {
     'use strict';
     if (err) {
         throw err;
@@ -134,7 +151,7 @@ DbWrapper.prototype.onDBerror = function (err) {
  * @param {function} callback
  * @public
  */
-DbWrapper.prototype.query = function (sql, callback) {
+DbWrapper.prototype.query = function dbhQuery(sql, callback) {
     'use strict';
     this.dbh.query(sql, callback);
 };
@@ -148,7 +165,7 @@ DbWrapper.prototype.query = function (sql, callback) {
  * @param {error} err JavaScript error
  * @throws {error} JavaScript error
  */
-DbWrapper.prototype.reconnectCallback = function (err) {
+DbWrapper.prototype.reconnectCallback = function reconnectCallback(err) {
     'use strict';
     if (!err.fatal) {
         return;
@@ -168,7 +185,7 @@ DbWrapper.prototype.reconnectCallback = function (err) {
  * @param {object} [paramObj] character_set object. the default is used if
  * omitted
  */
-DbWrapper.prototype.setCharacterSet = function (paramObj) {
+DbWrapper.prototype.setCharacterSet = function setCharacterSet(paramObj) {
     'use strict';
     this.character_set_obj = paramObj || {character_set_client: 'utf8mb4',
         character_set_connection: 'utf8mb4', character_set_results: 'utf8mb4',
