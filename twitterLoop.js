@@ -1,3 +1,4 @@
+/*jslint node: true, indent: 4, maxlen: 80 */
 // Required Singelton Classes amd Wrapper
 var DbWrapper = require('./classes/DbWrapper');
 var Twit = require('twit');

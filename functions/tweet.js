@@ -1,12 +1,14 @@
+/*jslint node: true, indent: 4, maxlen: 80 */
 /*properties
     annotations, contributors, coordinates, created_at, current_user_retweet,
-    entities, exports, favorited, format, geo, id, id_str,
-    in_reply_to_screen_name, in_reply_to_status_id, in_reply_to_status_id_str,
-    in_reply_to_user_id, in_reply_to_user_id_str, isArray, join, length, place,
-    placeId, possibly_sensitive, possibly_sensitive_editable, push,
-    retweet_count, retweeted, retweeted_status, scopes, screen_name, source,
-    stringify, text, truncated, type, user, userId, withheld_copyright,
-    withheld_in_countries, withheld_scope
+    entities, exports, favorite_count, favorited, filter_level, format, geo, id,
+    id_str, in_reply_to_screen_name, in_reply_to_status_id,
+    in_reply_to_status_id_str, in_reply_to_user_id, in_reply_to_user_id_str,
+    isArray, join, lang, length, place, placeId, possibly_sensitive,
+    possibly_sensitive_editable, push, retweet_count, retweeted,
+    retweeted_status, scopes, screen_name, source, stringify, text, truncated,
+    type, user, userId, withheld_copyright, withheld_in_countries,
+    withheld_scope
 */
 var format = require('util').format,
     isArray = require('util').isArray,
@@ -48,19 +50,23 @@ var format = require('util').format,
      * @type {string}
      */
     insTweets = 'INSERT INTO wut_tweets (id, annotations, created_at,' +
-        ' current_user_retweet, favorited, geo, in_reply_to_screen_name,' +
-        ' in_reply_to_status_id, in_reply_to_user_id, place,' +
+        ' current_user_retweet, favorite_count, favorited, filter_level, geo,' +
+        ' in_reply_to_screen_name,' +
+        ' in_reply_to_status_id, in_reply_to_user_id, lang, place,' +
         ' possibly_sensitive, possibly_sensitive_editable,' +
-        ' scopes,retweet_count, retweeted, source, text, truncated, user,' +
+        ' scopes, retweet_count, retweeted, source, text, truncated, user,' +
         ' withheld_copyright, withheld_in_countries, withheld_scope) VALUES' +
         ' (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,' +
-        ' %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE' +
+        ' %s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE' +
         ' annotations=VALUES(annotations), created_at=VALUES(created_at),' +
         ' current_user_retweet=VALUES(current_user_retweet),' +
+        ' favorite_count=VALUES(favorite_count),' +
         ' favorited=VALUES(favorited), geo=VALUES(geo),' +
+        ' filter_level=VALUES(filter_level),' +
         ' in_reply_to_screen_name=VALUES(in_reply_to_screen_name),' +
         ' in_reply_to_status_id=VALUES(in_reply_to_status_id),' +
         ' in_reply_to_user_id=VALUES(in_reply_to_user_id),' +
+        ' lang=VALUES(lang),' +
         ' place=VALUES(place), possibly_sensitive=VALUES(possibly_sensitive),' +
         ' possibly_sensitive_editable=VALUES(possibly_sensitive_editable),' +
         ' scopes=VALUES(scopes), retweet_count=VALUES(retweet_count),' +
@@ -77,6 +83,7 @@ var format = require('util').format,
     insUnknownTweetObjs = 'INSERT INTO wut_unknown_tweet_objs (tweet_id,' +
         ' timestamp, unknown) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE' +
         ' timestamp=VALUES(timestamp), unknown=VALUES(unknown);';
+
 /**
  * Returns an SQL-statement INSERT from the Contributors object.<br>
  * Nullable. An collection of brief user objects (usually only one) indicating
@@ -120,6 +127,7 @@ function contributors(cont, tweet_id, sqlEscFunc) {
     }
     return '';
 }
+
 /**
  * Returns the INSERT - statements for the Coordinates Object
  * @param {object} coor
@@ -254,11 +262,25 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
             current_user_retweet: 'null',
             /**
              * Entities which have been parsed out of the text of the Tweet.<br>
-             * Example: {"hashtags":[],"media":[];urls":[],"user_mentions":[]}
+             * Example:  {
+             *     "hashtags":[],
+             *     "media":[],
+             *     "symbols": [],
+             *     "urls":[],
+             *     "user_mentions":[]
+             * }
              * @default defaults to null
              * @type {string}
              */
             entities: '',
+            /**
+             * Nullable. Indicates approximately how many times this Tweet has
+             * been "favorited" by Twitter users.
+             * Example: 1585
+             * @default defaults to null
+             * @type {number}
+             */
+            favorite_count: null,
             /**
              * Nullable. Perspectival. Indicates whether this Tweet has been
              * favorited by the authenticating user.
@@ -266,6 +288,15 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
              * @type {string} String 'null', 'true' or 'false'
              */
             favorited: 'null',
+            /**
+             * Indicates the maximum value of the filter_level parameter which
+             * may be used and still stream this Tweet. So a value of medium
+             * will be streamed on none, low, and medium streams.
+             * @see dev.twitter.com/blog/introducing-new-metadata-for-tweets
+             * @default defaults to SQL-string null
+             * @type {string} String 'null' OR 'none', 'low', 'medium', 'high'
+             */
+            filter_level: 'null',
             /**
              * Deprecated. Nullable. Use the "coordinates" field instead.
              * @type {object}
@@ -296,6 +327,15 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
              * @type {string}
              */
             in_reply_to_user_id_str: 'null',
+            /**
+             * Nullable. When present, indicates a BCP 47 language identifier
+             * corresponding to the machine-detected language of the Tweet text,
+             * or "und" if no language could be detected.
+             * @see http://tools.ietf.org/html/bcp47
+             * @default defaults to SQL-string null
+             * @type {string}
+             */
+            lang: 'null',
             /**
              * Nullable. When present, indicates that the tweet is associated
              * (but not necessarily originating from) a Place.
@@ -460,12 +500,20 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
         dat.entities = entities(t.entities, dat.id_str, sqlEscFunc);
     }
     delete t.entities;
+    if (t.favorite_count || t.favorite_count === 0) {
+        dat.favorite_count = sqlEscFunc(t.favorite_count);
+    }
+    delete t.favorite_count;
     if (t.favorited === false) {
         dat.favorited = "'false'";
     } else if (t.favorited === true) {
         dat.favorited = "'true'";
     }
     delete t.favorited;
+    if (t.filter_level) {
+        dat.filter_level = sqlEscFunc(t.filter_level);
+    }
+    delete t.filter_level;
     if (t.geo !== null) {
         dat.geo = sqlEscFunc(JSON.stringify(t.geo));
     }
@@ -482,6 +530,10 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
         dat.in_reply_to_user_id_str = sqlEscFunc(t.in_reply_to_user_id_str);
     }
     delete t.in_reply_to_user_id_str;
+    if (t.lang) {
+        dat.lang = sqlEscFunc(t.lang);
+    }
+    delete t.lang;
     if (t.place !== null) {
         dat.place = place(t.place, sqlEscFunc);
         dat.placeId = sqlEscFunc(t.place.id);
@@ -573,11 +625,14 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
         dat.annotations,
         dat.created_at,
         dat.current_user_retweet,
+        dat.favorite_count,
         dat.favorited,
+        dat.filter_level,
         dat.geo,
         dat.in_reply_to_screen_name,
         dat.in_reply_to_status_id_str,
         dat.in_reply_to_user_id_str,
+        dat.lang,
         dat.placeId,
         dat.possibly_sensitive,
         dat.possibly_sensitive_editable,

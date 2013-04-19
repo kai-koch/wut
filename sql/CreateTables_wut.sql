@@ -1,34 +1,48 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.5
+-- version 3.4.11.1deb1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Dec 01, 2012 at 06:05 AM
--- Server version: 5.5.16
--- PHP Version: 5.3.8
+-- Erstellungszeit: 19. Apr 2013 um 16:49
+-- Server Version: 5.5.24
+-- PHP-Version: 5.4.4-4
 
+SET FOREIGN_KEY_CHECKS=0;
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT=0;
+START TRANSACTION;
 SET time_zone = "+00:00";
 
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-
 --
--- Database: `wut`
+-- Datenbank: `wut`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_contributors`
+-- Tabellenstruktur für Tabelle `parser_errors`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 16. Sep 2012 um 00:42
 --
 
-CREATE TABLE IF NOT EXISTS `wut_contributors` (
+CREATE TABLE `parser_errors` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
+  `chunk` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Chunks, from the twitter stream that are identified as one msg.',
+  `error_type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Type of error',
+  `error_message` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Text of the error message',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Table that store the raw chunks of twitter information' AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `wut_contributors`
+--
+-- Erzeugt am: 28. Okt 2012 um 03:11
+--
+
+CREATE TABLE `wut_contributors` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'The integer representation of the unique identifier for a Tweet.',
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'The integer representation of the ID of the user who contributed to this Tweet.',
   `screen_name` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'The screen name of the user who contributed to this Tweet.',
@@ -37,23 +51,15 @@ CREATE TABLE IF NOT EXISTS `wut_contributors` (
   KEY `screen_name` (`screen_name`(15))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='An collection of brief user objects (usually only one) indicating users who cont';
 
---
--- RELATIONS FOR TABLE `wut_contributors`:
---   `tweet_id`
---       `wut_tweets` -> `id`
---   `user_id`
---       `wut_users` -> `id`
---
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_delete`
+-- Tabellenstruktur für Tabelle `wut_delete`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_delete` (
+CREATE TABLE `wut_delete` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'id of tweet to be deleted',
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'user_id',
   `executed` enum('false','true') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'false' COMMENT 'Has this deletion been executed?',
@@ -63,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `wut_delete` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Status deletion notices (delete)';
 
 --
--- RELATIONS FOR TABLE `wut_delete`:
+-- RELATIONEN DER TABELLE `wut_delete`:
 --   `id`
 --       `wut_tweets` -> `id`
 --   `user_id`
@@ -73,12 +79,12 @@ CREATE TABLE IF NOT EXISTS `wut_delete` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_follow`
+-- Tabellenstruktur für Tabelle `wut_follow`
 --
--- Creation: Nov 07, 2012 at 01:24 AM
+-- Erzeugt am: 08. Nov 2012 um 01:55
 --
 
-CREATE TABLE IF NOT EXISTS `wut_follow` (
+CREATE TABLE `wut_follow` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Track ID',
   `follow` bigint(20) unsigned NOT NULL COMMENT '5000 users can be active at the same time',
   `begin` datetime NOT NULL COMMENT 'Datetime when to start the search for the track',
@@ -89,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `wut_follow` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Table that stores twitter users to be searched.' AUTO_INCREMENT=5 ;
 
 --
--- RELATIONS FOR TABLE `wut_follow`:
+-- RELATIONEN DER TABELLE `wut_follow`:
 --   `follow`
 --       `wut_users` -> `id`
 --
@@ -97,25 +103,19 @@ CREATE TABLE IF NOT EXISTS `wut_follow` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_geo_objects`
+-- Tabellenstruktur für Tabelle `wut_geo_objects`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_geo_objects` (
+CREATE TABLE `wut_geo_objects` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'Id of tweet',
   `type` enum('Point','MultiPoint','LineString','MultiLineString','Polygon','MultiPolygon','GeometryCollection') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Point' COMMENT 'Type of geo object',
   PRIMARY KEY (`tweet_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Represents the geographic location of a Tweet as reported';
 
 --
--- RELATIONS FOR TABLE `wut_geo_objects`:
---   `tweet_id`
---       `wut_tweets` -> `id`
---
-
---
--- Triggers `wut_geo_objects`
+-- Trigger `wut_geo_objects`
 --
 DROP TRIGGER IF EXISTS `geo_objects_del`;
 DELIMITER //
@@ -129,12 +129,12 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_geo_objects_coordinates`
+-- Tabellenstruktur für Tabelle `wut_geo_objects_coordinates`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_geo_objects_coordinates` (
+CREATE TABLE `wut_geo_objects_coordinates` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'Id of tweet',
   `index_of` tinyint(3) unsigned NOT NULL COMMENT 'Index of the coordinates from the tweets coordinates array',
   `longitude` double NOT NULL COMMENT 'As Decimal Degree',
@@ -142,21 +142,15 @@ CREATE TABLE IF NOT EXISTS `wut_geo_objects_coordinates` (
   PRIMARY KEY (`tweet_id`,`index_of`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='coordinates of a tweet object';
 
---
--- RELATIONS FOR TABLE `wut_geo_objects_coordinates`:
---   `tweet_id`
---       `wut_geo_objects` -> `tweet_id`
---
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_hashtags`
+-- Tabellenstruktur für Tabelle `wut_hashtags`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_hashtags` (
+CREATE TABLE `wut_hashtags` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'Id of tweet',
   `index_of` tinyint(3) unsigned NOT NULL COMMENT 'Index of from the tweets hashtags array',
   `x1` tinyint(3) unsigned NOT NULL COMMENT 'represents the location of the # character in the Tweet text string',
@@ -167,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `wut_hashtags` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='hashtags found in a tweet';
 
 --
--- RELATIONS FOR TABLE `wut_hashtags`:
+-- RELATIONEN DER TABELLE `wut_hashtags`:
 --   `tweet_id`
 --       `wut_tweets` -> `id`
 --
@@ -175,27 +169,27 @@ CREATE TABLE IF NOT EXISTS `wut_hashtags` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_http_statuscodes`
+-- Tabellenstruktur für Tabelle `wut_http_statuscodes`
 --
--- Creation: Nov 07, 2012 at 06:09 PM
+-- Erzeugt am: 08. Nov 2012 um 01:55
 --
 
-CREATE TABLE IF NOT EXISTS `wut_http_statuscodes` (
-  `value` smallint(5) unsigned NOT NULL COMMENT 'Numeric Value of the status code',
-  `description` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Short description of the status code',
-  `reference` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'RFC reference',
+CREATE TABLE `wut_http_statuscodes` (
+  `value` smallint(5) unsigned NOT NULL,
+  `description` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reference` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`value`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Source: http://www.iana.org/assignments/http-status-codes/http-status-codes.xml';
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_limit`
+-- Tabellenstruktur für Tabelle `wut_limit`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_limit` (
+CREATE TABLE `wut_limit` (
   `time_of_limit_hit` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp when the Limit occured',
   `track` int(10) unsigned NOT NULL COMMENT 'total count of the number of undelivered Tweets since the connection was opened',
   `processed` enum('false','true') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'false' COMMENT 'has this limit been processed',
@@ -206,14 +200,14 @@ CREATE TABLE IF NOT EXISTS `wut_limit` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_locations`
+-- Tabellenstruktur für Tabelle `wut_locations`
 --
--- Creation: Nov 07, 2012 at 01:49 AM
+-- Erzeugt am: 08. Nov 2012 um 01:55
 --
 
-CREATE TABLE IF NOT EXISTS `wut_locations` (
+CREATE TABLE `wut_locations` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Track ID',
-  `name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Name of the bounding box',
+  `name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Name unter dem die Boundingbox gespeichert wird',
   `SW` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'longitude,latitude pair / south-west corner of the Boundingbox',
   `NE` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'longitude,latitude pair / north-east corner of the BoundingBox',
   `begin` datetime NOT NULL COMMENT 'Datetime when to start the search for the track',
@@ -221,17 +215,17 @@ CREATE TABLE IF NOT EXISTS `wut_locations` (
   `authorized_by` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Webuser, who entered the search',
   PRIMARY KEY (`ID`),
   KEY `track` (`SW`,`begin`,`end`,`authorized_by`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Table that stores bounding boxes to be searched.' AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Table that stores bounding boxes to be searched.' AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_media`
+-- Tabellenstruktur für Tabelle `wut_media`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_media` (
+CREATE TABLE `wut_media` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID of the media expressed as a 64-bit integer',
   `display_url` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'URL of the media to display to clients',
   `expanded_url` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'An expanded version of display_url. Links to the media display page',
@@ -247,13 +241,13 @@ CREATE TABLE IF NOT EXISTS `wut_media` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Represents media elements uploaded with the Tweet';
 
 --
--- RELATIONS FOR TABLE `wut_media`:
+-- RELATIONEN DER TABELLE `wut_media`:
 --   `source_status_id`
 --       `wut_tweets` -> `id`
 --
 
 --
--- Triggers `wut_media`
+-- Trigger `wut_media`
 --
 DROP TRIGGER IF EXISTS `media_del`;
 DELIMITER //
@@ -267,12 +261,12 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_media_sizes`
+-- Tabellenstruktur für Tabelle `wut_media_sizes`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 15. Apr 2013 um 00:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_media_sizes` (
+CREATE TABLE `wut_media_sizes` (
   `media_id` bigint(20) unsigned NOT NULL COMMENT 'ID of the media expressed as a 64-bit integer',
   `size` enum('thumb','large','medium','small') COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'type of the size',
   `h` smallint(5) unsigned NOT NULL COMMENT 'Height in pixels of this size.',
@@ -282,7 +276,7 @@ CREATE TABLE IF NOT EXISTS `wut_media_sizes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='available sizes for the media file';
 
 --
--- RELATIONS FOR TABLE `wut_media_sizes`:
+-- RELATIONEN DER TABELLE `wut_media_sizes`:
 --   `media_id`
 --       `wut_media` -> `id`
 --
@@ -290,12 +284,12 @@ CREATE TABLE IF NOT EXISTS `wut_media_sizes` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_parser_errors`
+-- Tabellenstruktur für Tabelle `wut_parser_errors`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_parser_errors` (
+CREATE TABLE `wut_parser_errors` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' ON UPDATE CURRENT_TIMESTAMP,
   `chunk` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Chunks, from the twitter stream that are identified as one msg.',
@@ -307,12 +301,12 @@ CREATE TABLE IF NOT EXISTS `wut_parser_errors` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_places`
+-- Tabellenstruktur für Tabelle `wut_places`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 08. Nov 2012 um 02:55
 --
 
-CREATE TABLE IF NOT EXISTS `wut_places` (
+CREATE TABLE `wut_places` (
   `id` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'ID representing this place. Note that this is represented as a string, not an integer.',
   `attributes` text COLLATE utf8mb4_unicode_ci COMMENT 'JSON object. Contains a hash of variant information about the place. See About Geo Place Attributes.',
   `bounding_box` enum('Point','MultiPoint','LineString','MultiLineString','Polygon','MultiPolygon','GeometryCollection') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'A bounding box of coordinates which encloses this place.',
@@ -322,11 +316,12 @@ CREATE TABLE IF NOT EXISTS `wut_places` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Short human-readable representation of the place''s name.',
   `place_type` varchar(80) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'The type of location represented by this place.',
   `url` text COLLATE utf8mb4_unicode_ci COMMENT 'URL representing the location of additional place metadata for this place.',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `full_name` (`full_name`(20))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Places are specific, named locations with corresponding geo coordinates.';
 
 --
--- Triggers `wut_places`
+-- Trigger `wut_places`
 --
 DROP TRIGGER IF EXISTS `places_del`;
 DELIMITER //
@@ -340,12 +335,12 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_places_bounding_box_coordinates`
+-- Tabellenstruktur für Tabelle `wut_places_bounding_box_coordinates`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_places_bounding_box_coordinates` (
+CREATE TABLE `wut_places_bounding_box_coordinates` (
   `place_id` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Id of place',
   `index_of` tinyint(3) unsigned NOT NULL COMMENT 'Index of the coordinates from the places.bounding_box coordinates array',
   `longitude` double NOT NULL COMMENT 'As Decimal Degree',
@@ -354,7 +349,7 @@ CREATE TABLE IF NOT EXISTS `wut_places_bounding_box_coordinates` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='coordinates of a tweet object';
 
 --
--- RELATIONS FOR TABLE `wut_places_bounding_box_coordinates`:
+-- RELATIONEN DER TABELLE `wut_places_bounding_box_coordinates`:
 --   `place_id`
 --       `wut_places` -> `id`
 --
@@ -362,12 +357,12 @@ CREATE TABLE IF NOT EXISTS `wut_places_bounding_box_coordinates` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_scrub_geo`
+-- Tabellenstruktur für Tabelle `wut_scrub_geo`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_scrub_geo` (
+CREATE TABLE `wut_scrub_geo` (
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'user_id of the parrent user',
   `up_to_status_id` bigint(20) unsigned NOT NULL COMMENT 'latest tweet_id for which geo information must be stripped',
   `executed` enum('false','true') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'false' COMMENT 'has this notice been processed?',
@@ -375,23 +370,15 @@ CREATE TABLE IF NOT EXISTS `wut_scrub_geo` (
   KEY `executed` (`executed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Location deletion notices';
 
---
--- RELATIONS FOR TABLE `wut_scrub_geo`:
---   `up_to_status_id`
---       `wut_tweets` -> `id`
---   `user_id`
---       `wut_users` -> `id`
---
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_status_withheld`
+-- Tabellenstruktur für Tabelle `wut_status_withheld`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_status_withheld` (
+CREATE TABLE `wut_status_withheld` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'indicating the status ID',
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'indicating the user',
   `withheld_in_countries` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'a collection of withheld_in_countries two-letter country codes',
@@ -400,23 +387,15 @@ CREATE TABLE IF NOT EXISTS `wut_status_withheld` (
   KEY `processed` (`processed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='These messages indicate that either the indicated tweet or indicated user has ha';
 
---
--- RELATIONS FOR TABLE `wut_status_withheld`:
---   `tweet_id`
---       `wut_tweets` -> `id`
---   `user_id`
---       `wut_users` -> `id`
---
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_stream_statistics`
+-- Tabellenstruktur für Tabelle `wut_stream_statistics`
 --
--- Creation: Nov 07, 2012 at 04:13 AM
+-- Erzeugt am: 08. Nov 2012 um 01:55
 --
 
-CREATE TABLE IF NOT EXISTS `wut_stream_statistics` (
+CREATE TABLE `wut_stream_statistics` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `starttime` datetime NOT NULL,
   `endtime` datetime NOT NULL,
@@ -433,17 +412,41 @@ CREATE TABLE IF NOT EXISTS `wut_stream_statistics` (
   `warningCount` int(10) unsigned NOT NULL,
   `stuffToTrack` text COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Logs statistics for every run and keywordchange' AUTO_INCREMENT=6 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Logs statistics for every run and keywordchange' AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_track`
+-- Tabellenstruktur für Tabelle `wut_symbols`
 --
--- Creation: Nov 06, 2012 at 10:00 PM
+-- Erzeugt am: 19. Apr 2013 um 12:42
 --
 
-CREATE TABLE IF NOT EXISTS `wut_track` (
+CREATE TABLE `wut_symbols` (
+  `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'Id of tweet',
+  `index_of` tinyint(3) unsigned NOT NULL COMMENT 'Index of from the tweets symbols array',
+  `x1` tinyint(3) unsigned NOT NULL COMMENT 'represents the location of the $ character in the Tweet text string',
+  `x2` tinyint(3) unsigned NOT NULL COMMENT 'represents the location of the first character after the symbol. Therefore the difference between the x1 and x2 will be the length of the symbol name plus one (for the ''$'' character).',
+  `text` varchar(139) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Name of the symbol, minus the leading ''$'' character. REGEX pattern is \\$[a-z]{1,6}([._][a-z]{1,2})? over the lower cased text of the Tweet',
+  PRIMARY KEY (`tweet_id`,`index_of`),
+  KEY `text` (`text`(20))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Twitter auto-links financial symbols (which look like $FOO)';
+
+--
+-- RELATIONEN DER TABELLE `wut_symbols`:
+--   `tweet_id`
+--       `wut_tweets` -> `id`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Tabellenstruktur für Tabelle `wut_track`
+--
+-- Erzeugt am: 08. Nov 2012 um 01:55
+--
+
+CREATE TABLE `wut_track` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Track ID',
   `track` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '400 tracks can be active at the same time',
   `begin` datetime NOT NULL COMMENT 'Datetime when to start the search for the track',
@@ -451,26 +454,29 @@ CREATE TABLE IF NOT EXISTS `wut_track` (
   `authorized_by` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Webuser, who entered the search',
   PRIMARY KEY (`ID`),
   KEY `track` (`track`(191),`begin`,`end`,`authorized_by`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Table that stores keywords and hashtags to be searched.' AUTO_INCREMENT=47 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Table that stores keywords and hashtags to be searched.' AUTO_INCREMENT=5 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_tweets`
+-- Tabellenstruktur für Tabelle `wut_tweets`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 19. Apr 2013 um 12:21
 --
 
-CREATE TABLE IF NOT EXISTS `wut_tweets` (
+CREATE TABLE `wut_tweets` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'The integer representation of the unique identifier for this Tweet. This number is greater than 53 bits and some programming languages may have difficulty/silent defects in interpreting it.',
   `annotations` text COLLATE utf8mb4_unicode_ci COMMENT 'At time of development. This feature is not implemented by twitter. Will be stored as JSON-object here, if implemented',
   `created_at` datetime NOT NULL COMMENT 'UTC time when this Tweet was created.',
   `current_user_retweet` bigint(20) unsigned DEFAULT NULL COMMENT 'Perspectival. Only surfaces on methods supporting the include_my_retweet parameter, when set to true. Details the Tweet ID of the user''s own retweet (if existent) of this Tweet.',
+  `favorite_count` int(10) unsigned DEFAULT NULL COMMENT 'Nullable. Indicates approximately how many times this Tweet has been "favorited" by Twitter users.',
   `favorited` enum('false','true') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nullable. Perspectival. Indicates whether this Tweet has been favorited by the authenticating user.',
+  `filter_level` enum('none','low','medium','high') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Indicates the maximum value of the filter_level parameter which may be used and still stream this Tweet. So a value of medium will be streamed on none, low, and medium streams. https://dev.twitter.com/docs/streaming-apis/parameters#filter_level  https://dev.twitter.com/blog/introducing-new-metadata-for-tweets',
   `geo` text COLLATE utf8mb4_unicode_ci COMMENT 'Deprecated. Nullable. Use the "coordinates" field instead. If still used will be JSON-object.',
   `in_reply_to_screen_name` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nullable. If the represented Tweet is a reply, this field will contain the screen name of the original Tweet''s author.',
   `in_reply_to_status_id` bigint(20) unsigned DEFAULT NULL COMMENT 'Nullable. If the represented Tweet is a reply, this field will contain the integer representation of the original Tweet''s ID.',
   `in_reply_to_user_id` bigint(20) unsigned DEFAULT NULL COMMENT 'Nullable. If the represented Tweet is a reply, this field will contain the integer representation of the original Tweet''s author ID.',
+  `lang` varchar(9) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nullable. When present, indicates a BCP 47 language identifier corresponding to the machine-detected language of the Tweet text, or "und" if no language could be detected.',
   `place` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'string, not an integer! Nullable. When present, indicates that the tweet is associated (but not necessarily originating from) a Place.',
   `possibly_sensitive` enum('false','true') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nullable. This field only surfaces when a tweet contains a link. The meaning of the field doesn''t pertain to the tweet content itself, but instead it is an indicator that the URL contained in the tweet may contain content or media identified as sensitive content.',
   `possibly_sensitive_editable` enum('false','true') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -490,9 +496,7 @@ CREATE TABLE IF NOT EXISTS `wut_tweets` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Here come the tweets';
 
 --
--- RELATIONS FOR TABLE `wut_tweets`:
---   `current_user_retweet`
---       `wut_users` -> `id`
+-- RELATIONEN DER TABELLE `wut_tweets`:
 --   `in_reply_to_status_id`
 --       `wut_tweets` -> `id`
 --   `in_reply_to_user_id`
@@ -504,7 +508,7 @@ CREATE TABLE IF NOT EXISTS `wut_tweets` (
 --
 
 --
--- Triggers `wut_tweets`
+-- Trigger `wut_tweets`
 --
 DROP TRIGGER IF EXISTS `tweets_after_del`;
 DELIMITER //
@@ -513,7 +517,8 @@ CREATE TRIGGER `tweets_after_del` AFTER DELETE ON `wut_tweets`
   DELETE FROM wut_contributors WHERE tweet_id=OLD.id;
   DELETE FROM wut_geo_objects WHERE tweet_id=OLD.id;
   DELETE FROM wut_hashtags WHERE tweet_id=OLD.id;
-  DELETE FROM wut_media WHERE tweet_id=OLD.id;
+  DELETE FROM wut_symbols WHERE tweet_id=OLD.id;
+  DELETE FROM wut_tweet_media WHERE tweet_id=OLD.id;
   DELETE FROM wut_unknown_tweet_objs WHERE tweet_id=OLD.id;
   DELETE FROM wut_urls WHERE tweet_id=OLD.id;
   DELETE FROM wut_user_mentions WHERE tweet_id=OLD.id;
@@ -524,20 +529,21 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_tweet_media`
+-- Tabellenstruktur für Tabelle `wut_tweet_media`
 --
--- Creation: Sep 01, 2012 at 03:41 PM
+-- Erzeugt am: 15. Apr 2013 um 00:10
 --
 
-CREATE TABLE IF NOT EXISTS `wut_tweet_media` (
+CREATE TABLE `wut_tweet_media` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'id of parrent tweet',
   `index_of` tinyint(3) unsigned NOT NULL COMMENT 'Index of from the tweets media array',
   `media_id` bigint(20) unsigned NOT NULL COMMENT 'ID of the media expressed as a 64-bit integer',
-  PRIMARY KEY (`tweet_id`,`index_of`,`media_id`)
+  PRIMARY KEY (`tweet_id`,`index_of`,`media_id`),
+  KEY `media_id` (`media_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- RELATIONS FOR TABLE `wut_tweet_media`:
+-- RELATIONEN DER TABELLE `wut_tweet_media`:
 --   `media_id`
 --       `wut_media` -> `id`
 --   `tweet_id`
@@ -547,12 +553,12 @@ CREATE TABLE IF NOT EXISTS `wut_tweet_media` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_unknown_tweet_objs`
+-- Tabellenstruktur für Tabelle `wut_unknown_tweet_objs`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_unknown_tweet_objs` (
+CREATE TABLE `wut_unknown_tweet_objs` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'tweet_id of the parrent tweet',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'timestamp of the creation of the parrent tweet',
   `unknown` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'field with a JSON array of unknown tweet objects and attributes',
@@ -560,7 +566,7 @@ CREATE TABLE IF NOT EXISTS `wut_unknown_tweet_objs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='table to store not recognized tweet attributes';
 
 --
--- RELATIONS FOR TABLE `wut_unknown_tweet_objs`:
+-- RELATIONEN DER TABELLE `wut_unknown_tweet_objs`:
 --   `tweet_id`
 --       `wut_tweets` -> `id`
 --
@@ -568,33 +574,27 @@ CREATE TABLE IF NOT EXISTS `wut_unknown_tweet_objs` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_unknown_user_objs`
+-- Tabellenstruktur für Tabelle `wut_unknown_user_objs`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_unknown_user_objs` (
+CREATE TABLE `wut_unknown_user_objs` (
   `user_id` bigint(20) unsigned NOT NULL COMMENT 'user_id of the parrent user',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'timestamp of user creation',
   `unknown` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'field with a JSON array of unknown user objects and attributes',
   PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='table to store not recognized user attributes, for future upgrades and debugging';
 
---
--- RELATIONS FOR TABLE `wut_unknown_user_objs`:
---   `user_id`
---       `wut_users` -> `id`
---
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_urls`
+-- Tabellenstruktur für Tabelle `wut_urls`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_urls` (
+CREATE TABLE `wut_urls` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'Id of tweet',
   `index_of` tinyint(3) unsigned NOT NULL COMMENT 'Index of from the tweets url array',
   `display_url` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Version of the URL to display to clients.',
@@ -607,13 +607,13 @@ CREATE TABLE IF NOT EXISTS `wut_urls` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Represents URLs included in the text of the Tweet.';
 
 --
--- RELATIONS FOR TABLE `wut_urls`:
+-- RELATIONEN DER TABELLE `wut_urls`:
 --   `tweet_id`
 --       `wut_tweets` -> `id`
 --
 
 --
--- Triggers `wut_urls`
+-- Trigger `wut_urls`
 --
 DROP TRIGGER IF EXISTS `urls_ins`;
 DELIMITER //
@@ -638,12 +638,12 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_urls_resolved`
+-- Tabellenstruktur für Tabelle `wut_urls_resolved`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 21. Jan 2013 um 15:42
 --
 
-CREATE TABLE IF NOT EXISTS `wut_urls_resolved` (
+CREATE TABLE `wut_urls_resolved` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'id des tweets',
   `index_of` tinyint(3) unsigned NOT NULL COMMENT 'nth URL in tweet',
   `resolve_index_of` tinyint(3) unsigned NOT NULL COMMENT 'nth resolve of resulting URL e.g. fb.me -> bit.ly -> tinyurl.com -> final Real URL',
@@ -653,15 +653,15 @@ CREATE TABLE IF NOT EXISTS `wut_urls_resolved` (
   `httpVersion` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Server Protocol of the response',
   `contentType` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Content type of the response',
   `date` datetime DEFAULT NULL COMMENT 'Date the responding server send back',
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp of this server',
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Timestamp of this server',
   PRIMARY KEY (`tweet_id`,`index_of`,`resolve_index_of`),
   KEY `resolved` (`resolved`),
-  KEY `statuscode` (`statuscode`),
+  KEY `date` (`date`),
   KEY `timestamp` (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Storing expanded URLs after Twitters own expansion';
 
 --
--- RELATIONS FOR TABLE `wut_urls_resolved`:
+-- RELATIONEN DER TABELLE `wut_urls_resolved`:
 --   `statuscode`
 --       `wut_http_statuscodes` -> `value`
 --   `tweet_id`
@@ -671,12 +671,12 @@ CREATE TABLE IF NOT EXISTS `wut_urls_resolved` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_users`
+-- Tabellenstruktur für Tabelle `wut_users`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_users` (
+CREATE TABLE `wut_users` (
   `id` bigint(20) unsigned NOT NULL COMMENT 'The integer representation of the unique identifier for this User. This number is greater than 53 bits and some programming languages may have difficulty/silent defects in interpreting it.',
   `contributors_enabled` enum('false','true') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Indicates that the user has an account with "contributor mode" enabled, allowing for Tweets issued by the user to be co-authored by another account. Rarely true.',
   `created_at` datetime DEFAULT NULL COMMENT 'The UTC datetime that the user account was created on Twitter.',
@@ -722,13 +722,13 @@ CREATE TABLE IF NOT EXISTS `wut_users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Twitter user data';
 
 --
--- RELATIONS FOR TABLE `wut_users`:
+-- RELATIONEN DER TABELLE `wut_users`:
 --   `status`
 --       `wut_tweets` -> `id`
 --
 
 --
--- Triggers `wut_users`
+-- Trigger `wut_users`
 --
 DROP TRIGGER IF EXISTS `user_log_after_ins`;
 DELIMITER //
@@ -797,12 +797,12 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_users_backlog`
+-- Tabellenstruktur für Tabelle `wut_users_backlog`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_users_backlog` (
+CREATE TABLE `wut_users_backlog` (
   `back_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID of the loging',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'timestamp of the loging',
   `id` bigint(20) unsigned NOT NULL COMMENT 'The integer representation of the unique identifier for this User. This number is greater than 53 bits and some programming languages may have difficulty/silent defects in interpreting it.',
@@ -848,25 +848,17 @@ CREATE TABLE IF NOT EXISTS `wut_users_backlog` (
   `withheld_scope` enum('status','user') COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'When present, indicates whether the content being withheld is the "status" or a "user." ',
   PRIMARY KEY (`back_id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Twitter user data' AUTO_INCREMENT=14873 ;
-
---
--- RELATIONS FOR TABLE `wut_users_backlog`:
---   `id`
---       `wut_users` -> `id`
---   `status`
---       `wut_tweets` -> `id`
---
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Twitter user data' AUTO_INCREMENT=192 ;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_user_mentions`
+-- Tabellenstruktur für Tabelle `wut_user_mentions`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_user_mentions` (
+CREATE TABLE `wut_user_mentions` (
   `tweet_id` bigint(20) unsigned NOT NULL COMMENT 'Id of tweet',
   `index_of` tinyint(3) unsigned NOT NULL COMMENT 'Index of from the tweets user_mentions array',
   `id` bigint(20) unsigned NOT NULL COMMENT 'ID of the mentioned user, as an integer.',
@@ -881,9 +873,7 @@ CREATE TABLE IF NOT EXISTS `wut_user_mentions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Represents other Twitter users mentioned in the text of the Tweet.';
 
 --
--- RELATIONS FOR TABLE `wut_user_mentions`:
---   `id`
---       `wut_users` -> `id`
+-- RELATIONEN DER TABELLE `wut_user_mentions`:
 --   `tweet_id`
 --       `wut_tweets` -> `id`
 --
@@ -891,12 +881,12 @@ CREATE TABLE IF NOT EXISTS `wut_user_mentions` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_user_withheld`
+-- Tabellenstruktur für Tabelle `wut_user_withheld`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_user_withheld` (
+CREATE TABLE `wut_user_withheld` (
   `user_id` int(10) unsigned NOT NULL COMMENT 'indicating the user ID',
   `withheld_in_countries` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'a collection of withheld_in_countries two-letter country codes',
   `processed` enum('false','true') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'false' COMMENT 'has this notice been processed?',
@@ -904,28 +894,20 @@ CREATE TABLE IF NOT EXISTS `wut_user_withheld` (
   KEY `processed` (`processed`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='These messages indicate that either the indicated tweet or indicated user has ha';
 
---
--- RELATIONS FOR TABLE `wut_user_withheld`:
---   `user_id`
---       `wut_users` -> `id`
---
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `wut_warnings`
+-- Tabellenstruktur für Tabelle `wut_warnings`
 --
--- Creation: Sep 01, 2012 at 01:44 AM
+-- Erzeugt am: 28. Okt 2012 um 03:11
 --
 
-CREATE TABLE IF NOT EXISTS `wut_warnings` (
+CREATE TABLE `wut_warnings` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Timestmp of warning',
   `code` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Warning Code',
   `message` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Warning message',
   `percent_full` double DEFAULT NULL COMMENT 'Percentage of backfill messages in queue',
   PRIMARY KEY (`timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Warnings from the Twitter API';
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+SET FOREIGN_KEY_CHECKS=1;
+COMMIT;

@@ -47,3 +47,5 @@ application/config/config.php
 ehthumbs.db
 Icon?
 Thumbs.db
+/todo.txt
+/insertBTW13tags.sql

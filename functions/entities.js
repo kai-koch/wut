@@ -1,36 +1,50 @@
+/*jslint node: true, indent: 4, maxlen: 80 */
 /*properties
     display_url, expanded_url, exports, format, hashtags, id_str, indices,
-    isArray, join, length, media, name, push, screen_name, text, url, urls,
-    user_mentions
+    isArray, join, length, media, name, push, screen_name, symbols, text, url,
+    urls, user_mentions
 */
 var format = require('util').format,
     isArray = require('util').isArray,
     media = require('./media'),
     /**
      * Static String template for VALUES of the INSERT-statement
-     * @type {string}
+     * @type {String}
      */
     insHashtagsValues = '(%s, %d, %d, %d, %s)',
     /**
+     * Static String template for VALUES of the INSERT-statement
+     * @type {String}
+     */
+    insSymbolsValues = '(%s, %d, %d, %d, %s)',
+    /**
      * Static string template for VALUES of the INSERT-statement
-     * @type {string}
+     * @type {String}
      */
     insUrlsValues = '(%s, %d, %s, %s, %d, %d, %s)',
     /**
      * Static string template for VALUES of the INSERT-statement
-     * @type {string}
+     * @type {String}
      */
     insUserMentionedValues = '(%s, %d, %s, %d, %d, %s, %s)',
     /**
      * Static String template for the INSERT-statement
-     * @type {string}
+     * @type {String}
      */
     insHashtags = 'INSERT INTO wut_hashtags (tweet_id, index_of,' +
         ' x1, x2, text) VALUES %s ON DUPLICATE KEY UPDATE x1=VALUES(x1),' +
         ' x2=VALUES(x2), text=VALUES(text);',
     /**
      * Static String template for the INSERT-statement
-     * @type {string}
+     * @type {String}
+     */
+    insSymbols = 'INSERT INTO wut_symbols (tweet_id, index_of,' +
+        ' x1, x2, text) VALUES %s ON DUPLICATE KEY UPDATE x1=VALUES(x1),' +
+        ' x2=VALUES(x2), text=VALUES(text);',
+
+    /**
+     * Static String template for the INSERT-statement
+     * @type {String}
      */
     insUrls = 'INSERT INTO wut_urls (tweet_id, index_of, display_url,' +
         ' expanded_url, x1, x2, url) VALUES %s ON DUPLICATE KEY UPDATE ' +
@@ -38,17 +52,18 @@ var format = require('util').format,
         ' x1=VALUES(x1), x2=VALUES(x2), url=VALUES(url);',
     /**
      * Static string template INSERT-statements for the Media Object
-     * @type {string}
+     * @type {String}
      */
     insUserMentioned = 'INSERT INTO wut_user_mentions (tweet_id, index_of,' +
         ' id, x1, x2, name, screen_name) VALUES %s ON DUPLICATE KEY UPDATE ' +
         'id=VALUES(id), x1=VALUES(x1), x2=VALUES(x2), name=VALUES(name),' +
         ' screen_name=VALUES(screen_name);';
+
 /**
  * Returns the VALUES for INSERT-statement of the hashtag object
  * @param {string} tweet_id id of the parrent Tweet. SQL-escaped
  * @param {number} index_of Index of the Apperance in the tweet
- * @param {object} hshtg represent a single hashtags which have been parsed
+ * @param {object} hshtg represent a single hashtag which has been parsed
  *     out of the Tweet text.
  * @param {function} sqlEscFunc Function used to escape values for
  *     SQL-statements, usually the connection.escape() function
@@ -59,6 +74,23 @@ function hashtag(tweet_id, index_of, hshtg, sqlEscFunc) {
     'use strict';
     return format(insHashtagsValues, tweet_id, index_of, hshtg.indices[0],
         hshtg.indices[1], sqlEscFunc(hshtg.text));
+}
+
+/**
+ * Returns the VALUES for INSERT-statement of the symbol object
+ * @param {string} tweet_id id of the parrent Tweet. SQL-escaped
+ * @param {number} index_of Index of the Apperance in the tweet
+ * @param {object} cashtag represent a single symbol (aka cashtag) which has
+ *     been parsed out of the Tweet text.
+ * @param {function} sqlEscFunc Function used to escape values for
+ *     SQL-statements, usually the connection.escape() function
+ * @return {string}
+ * @author Kai Koch
+ */
+function symbol(tweet_id, index_of, cashtag, sqlEscFunc) {
+    'use strict';
+    return format(insSymbolsValues, tweet_id, index_of, cashtag.indices[0],
+        cashtag.indices[1], sqlEscFunc(cashtag.text));
 }
 
 /**
@@ -87,6 +119,7 @@ function url(tweet_id, index_of, uri, sqlEscFunc) {
         sqlEscFunc(uri.display_url), sqlEscFunc(uri.expanded_url),
         uri.indices[0], uri.indices[1], sqlEscFunc(uri.url));
 }
+
 /**
  * Returns the Values for the REPLACE-statement of the url object
  * @param {string} tweet_id id of the parrent Tweet. SQL-escaped
@@ -103,6 +136,7 @@ function user_mention(tweet_id, index_of, umen, sqlEscFunc) {
         sqlEscFunc(umen.id_str), umen.indices[0], umen.indices[1],
         sqlEscFunc(umen.name), sqlEscFunc(umen.screen_name));
 }
+
 /**
  * Returns a <b>multiline</b> SQL-statement to store the entities into the
  * Database
@@ -124,8 +158,15 @@ function entities(enti, tweet_id, sqlEscFunc) {
         hashtags = [],
         hashtagsCount = 0,
         /**
+         * Array of Symbols objects SQL-strings, that represents symbols in
+         * the text of the Tweet.
+         * @type {Array}
+         */
+        symbols = [],
+        symbolsCount = 0,
+        /**
          * SQL-string, that represents media in the text of the Tweet.
-         * @type {string}
+         * @type {String}
          */
         medias = '',
         /**
@@ -149,6 +190,13 @@ function entities(enti, tweet_id, sqlEscFunc) {
                 sqlEscFunc));
         }
     }
+    if (enti.symbols !== undefined && isArray(enti.symbols)) {
+        len = enti.symbols.length;
+        for (i = 0; i < len; i += 1) {
+            symbolsCount = symbols.push(symbol(tweet_id, i, enti.symbols[i],
+                sqlEscFunc));
+        }
+    }
     if (enti.media !== undefined && isArray(enti.media)) {
         medias = media(tweet_id, enti.media, sqlEscFunc);
     }
@@ -168,6 +216,10 @@ function entities(enti, tweet_id, sqlEscFunc) {
     if (hashtagsCount) {
         statementCount = sqlStatemnts.push(format(insHashtags,
             hashtags.join(',')));
+    }
+    if (symbolsCount) {
+        statementCount = sqlStatemnts.push(format(insSymbols,
+            symbols.join(',')));
     }
     if (medias) {
         statementCount = sqlStatemnts.push(medias);
