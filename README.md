@@ -2,7 +2,7 @@ wut
 ===
 __wut - "Working Up Twitter":__ tool to collect and store data from the Twitter Stream API for analysis and statistical evaluation
 
-Version 0.1.0
+Version 0.1.1
 
 TOC:
 ====
