@@ -1,7 +1,7 @@
 {
   "name": "wut",
   "description": "\"Working Up Twitter\": tool to collect and store data from the Twitter Stream API for analysis and statistical evaluation",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Kai Koch <kai.koch@gmail.com>",
   "contributors": [],
   "keywords": [

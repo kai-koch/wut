@@ -2,7 +2,7 @@ wut
 ===
 __wut - "Working Up Twitter":__ tool to collect and store data from the Twitter Stream API for analysis and statistical evaluation
 
-Version 0.1.1
+Version 0.1.2
 
 TOC:
 ====
@@ -10,6 +10,7 @@ TOC:
 * [System requirements](README.md#system-requirements)
 * [Quick install](README.md#quick-install)
 * [Future development](README.md#future-development)
+* [Changelog](README.md#changelog)
 * [License](README.md#license)
 
 Purpose:
@@ -26,16 +27,16 @@ System requirements:
     *__needed node modules:__*
     * [node-mysql](https://github.com/felixge/node-mysql)
     * [twit](https://github.com/ttezel/twit)
- 
-+ __Datbase:__ MySQL 5.5.3 or higher    
+
++ __Datbase:__ MySQL 5.5.3 or higher
     * To store the content of the tweets right you need to have utf8mb4 support. On older MySQL versions 4 bytes UTF-8 chars and emoji-codepoints are not stored correctly!
 
     * On Windows DO NOT install MySQL on a FAT-32 partiton or you will run into the 4 GB file limit of the FAT-32 filesystem very fast! Use NTFS on Windows instead.
 
     * If you expect high volume traffic from your Twitter tracks you may dedicate a whole partition to the database installation. Please see the MySQL manual on InnoDB setup.
-    
+
     * You also might want to alter the standard MySQL configuration since 64mb Memory is a bit low for the database backend to handle higher volume traffic.
-    
+
 + *Recommended:* a lot of diskspace on a fast hard disk and a nice chunk of RAM for the database! (Since it is the bottle neck of this application)
 
 + *Recommended:* For now a database frontend like phpMyAdmin, since a web frontend is not yet implemented. But through the database you can configure the searched tracks and access the collected data. (I use xampp, it comes with MySQL and phpMyAdmin and is easy to install on most systems - see: http://www.apachefriends.org)
@@ -60,6 +61,14 @@ Besides fixing bugs and improving performance, this application will get:
 * A proper web frontend, so the user, will not have to work directly through the database
 * Language detection in real time
 * Installation of the JavaScript core through npm
+
+Changelog:
+==========
+__Version 0.1.2__
+
++ added table 'wut_retweets' and code to represent missing retweet->tweet relation
+
++ [changelog](changelog.md)
 
 License:
 ========

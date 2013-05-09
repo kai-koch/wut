@@ -1,11 +1,11 @@
 /*jslint node: true, indent: 4, maxlen: 80 */
 /*properties
     annotations, contributors, coordinates, created_at, current_user_retweet,
-    entities, exports, favorite_count, favorited, filter_level, format, geo, id,
-    id_str, in_reply_to_screen_name, in_reply_to_status_id,
+    entities, exports, favorite_count, favorited, filter_level, format, geo,
+    hasOwnProperty, id, id_str, in_reply_to_screen_name, in_reply_to_status_id,
     in_reply_to_status_id_str, in_reply_to_user_id, in_reply_to_user_id_str,
     isArray, join, lang, length, place, placeId, possibly_sensitive,
-    possibly_sensitive_editable, push, retweet_count, retweeted,
+    possibly_sensitive_editable, push, retweet_count, retweet_rel, retweeted,
     retweeted_status, scopes, screen_name, source, stringify, text, truncated,
     type, user, userId, withheld_copyright, withheld_in_countries,
     withheld_scope
@@ -15,6 +15,7 @@ var format = require('util').format,
     entities = require('./entities'),
     place = require('./place'),
     user = require('./user'),
+    retweet = require('./retweet'),
     /**
      * The VALUE template for the INSERT SQL-statement
      * @type {string}
@@ -390,7 +391,7 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
              */
             retweeted: 'null',
             /**
-             * If the tweet is a retweet, it will include a node called
+             * If the tweet is a re-tweet, it will include a node called
              * retweeted_status that within contains the tweet that has been
              * retweeted. The outer-most elements of the structure represent
              * the "new tweet" created to house the retweet.<br>
@@ -400,6 +401,13 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
              * @link https://dev.twitter.com/discussions/2994
              */
             retweeted_status: '',
+            /**
+             * If a tweet is a re-tweet, here the SQL-Statement for the
+             * tweet-&gt;re-tweet relation is stored
+             * @default defaults to empty String
+             * @type {string}
+             */
+            retweet_rel: '',
             /**
              * Utility used to post the Tweet, as an HTML-formatted string.
              * Tweets from the Twitter website have a source value of web.<br>
@@ -566,6 +574,13 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
     }
     delete t.retweeted;
     if (t.retweeted_status) {
+        if (t.retweeted_status.hasOwnProperty("lang")) {
+            dat.lang = sqlEscFunc(t.retweeted_status.lang);
+        }
+        dat.retweet_rel = retweet(
+            dat.id_str,
+            sqlEscFunc(t.retweeted_status.id_str)
+        );
         dat.retweeted_status = tweet(t.retweeted_status, sqlEscFunc, false);
     }
     delete t.retweeted_status;
@@ -646,6 +661,9 @@ function tweet(t, sqlEscFunc, fromUserStatus) {
         dat.withheld_copyright,
         dat.withheld_in_countries,
         dat.withheld_scope));
+    if (dat.retweet_rel) {
+        rows.push(dat.retweet_rel);
+    }
     if (dat.contributors) {
         rows.push(dat.contributors);
     }
